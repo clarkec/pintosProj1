@@ -1,0 +1,9 @@
+Nick Stanley
+Project 0
+
+To create the alarm-mega test, additions were made in:
+alarm-wait.c
+tests.c
+tests.h
+Make.tests
+Rubric.alarm
