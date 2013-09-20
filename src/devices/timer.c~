@@ -30,11 +30,14 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
+static struct semaphore S;
+
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
 timer_init (void) 
 {
+  sema_init(&S, 1);
   pit_configure_channel (0, 2, TIMER_FREQ);
   intr_register_ext (0x20, timer_interrupt, "8254 Timer");
 }
@@ -93,13 +96,14 @@ timer_sleep (int64_t ticks)
   int64_t start = timer_ticks ();
 
   ASSERT (intr_get_level () == INTR_ON);
+
+  //Remove thread from ready list
+  //list_remove(&thread_current()->elem);
   while (timer_elapsed (start) < ticks)
   {
-    //Remove thread from ready list
-    //  -put back after ticks elapsed
-    //Use sema to block thread on sem associated with thread calling sleep()
-    //thread_yield ();
+		sema_down(&S);
   }
+
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -177,6 +181,7 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
+	sema_up(&S);
   thread_tick ();
 }
 
